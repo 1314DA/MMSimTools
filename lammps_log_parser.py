@@ -4,7 +4,7 @@ import pandas as pd
 from glob import glob
 
 def parse_log_to_pandas_df(logfiles, concat=True, del_duplicates=True, 
-                           check=False, print_df=False):
+                           check=False, print_df=False, natoms=False):
     '''
     read thermo data from lammps log-file
 
@@ -21,6 +21,8 @@ def parse_log_to_pandas_df(logfiles, concat=True, del_duplicates=True,
         warns each time a run in a log-file is not completed
     print_df  :  bool
         print the parsed dataframe
+    natoms  :  bool
+        additionally return number of atoms for completed runs
 
     Raises
     ------
@@ -62,6 +64,7 @@ def parse_log_to_pandas_df(logfiles, concat=True, del_duplicates=True,
                 mode = None
                 datasets.append(data)
                 data = []
+                N = int(line.split()[-2]) # last line has natoms
             elif mode == 'thermo':
                 data.append(line)
             
@@ -73,7 +76,7 @@ def parse_log_to_pandas_df(logfiles, concat=True, del_duplicates=True,
         if datasets == []:
             raise SystemExit('cannot find data in your log-file')
 
-        return datasets
+        return datasets, N
         
 
     # convert a list of log-file lines to a pandas dataframe
@@ -100,7 +103,7 @@ def parse_log_to_pandas_df(logfiles, concat=True, del_duplicates=True,
 
         # parse log-file to pandas dataframe
         with read_textfile(logfile) as f:
-            datasets = isolate_thermo_passages(f)
+            datasets, N = isolate_thermo_passages(f)
     
         for dataset in datasets:
             df = convert_dataset_to_dataframe(dataset)
@@ -120,5 +123,9 @@ def parse_log_to_pandas_df(logfiles, concat=True, del_duplicates=True,
     # if desired, print thermodata
     if print_df:
         print(thermodata)
+
+    # if desired, return natoms as well
+    if natoms == True:
+        thermodata = (thermodata, N)
 
     return thermodata
