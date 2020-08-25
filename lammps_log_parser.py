@@ -4,7 +4,8 @@ import pandas as pd
 from glob import glob
 
 def parse_log_to_pandas_df(logfiles, concat=True, del_duplicates=True, 
-                           check=False, print_df=False, natoms=False):
+                           check=False, print_df=False, natoms=False,
+                           extend=None):
     '''
     read thermo data from lammps log-file
 
@@ -23,6 +24,9 @@ def parse_log_to_pandas_df(logfiles, concat=True, del_duplicates=True,
         print the parsed dataframe
     natoms  :  bool
         additionally return number of atoms for completed runs
+    extend  :  list
+        list of column keys with values to be additively extended over 
+        multiple log segments
 
     Raises
     ------
@@ -91,6 +95,19 @@ def parse_log_to_pandas_df(logfiles, concat=True, del_duplicates=True,
         return df
 
 
+    # additively extend columns over all logs that are read
+    def extend_log_columns(thermodata, extend):
+        if extend == None:
+            pass
+        else:
+            try:
+                for k in extend:
+                    for i in range(len(thermodata)-1):
+                        final_val = thermodata[i][k].iloc[-1]
+                        thermodata[i+1][k] += final_val
+            except:
+                print('something is wrong with the way you want to extend')
+        return thermodata
 
     ### main procedure ###
 
@@ -109,8 +126,12 @@ def parse_log_to_pandas_df(logfiles, concat=True, del_duplicates=True,
             df = convert_dataset_to_dataframe(dataset)
             thermodata.append(df)
 
+    # if desired additively continue columns over several log segments
+    thermodata = extend_log_columns(thermodata, extend)
+
     # if desired, concat dataframes
     if concat:
+        # do the concatenation
         thermodata_concatenated = pd.concat(thermodata, sort=False)
         thermodata = thermodata_concatenated
         thermodata.reset_index(drop=True, inplace=True)
