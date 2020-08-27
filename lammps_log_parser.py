@@ -76,6 +76,7 @@ def parse_log_to_pandas_df(logfiles, concat=True, del_duplicates=True,
             if check == True:
                 print('the last run in your log-file has not finished!')
             datasets.append(data)
+            N = 0
 
         if datasets == []:
             raise SystemExit('cannot find data in your log-file')
