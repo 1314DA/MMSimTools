@@ -11,9 +11,9 @@ def parse_log_to_pandas_df(logfiles, concat=True, del_duplicates=True,
 
     Parameters
     ----------
-    logfiles : str
+    logfiles  :  str
         address of the log file or pattern which will be interpreted by glob
-    concat : bool
+    concat  :  bool
         should different parts of thermo output be concatenated into a single 
         dataframe or should do you want a list of dataframes instead
     del_duplicates  :  bool
